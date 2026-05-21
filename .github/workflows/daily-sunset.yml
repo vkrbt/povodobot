@@ -44,5 +44,8 @@ jobs:
       - name: Install deps
         run: npm ci
 
+      - name: Build TypeScript
+        run: npm run build
+
       - name: Publish daily card + poll
-        run: npm run today
+        run: node dist/cli/today.js
