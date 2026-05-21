@@ -47,15 +47,21 @@ export async function publishWeatherCard(
   const withPoll = options.withPoll ?? true;
 
   logger.info(
-    `Publishing weather card to [${targets.join(', ')}] (withPoll=${withPoll})`,
+    `Publishing weather card to ${targets.length} chat(s): [${targets.join(', ')}] (withPoll=${withPoll})`,
   );
 
   const weather = await fetchWeather();
   const cardPath = await renderCard(weather);
   const caption = buildCaption(weather);
+  const pollQuestion = withPoll ? buildPollQuestion(weather) : '';
+
+  let okCount = 0;
+  const failures: Array<{ target: string | number; error: unknown }> = [];
 
   for (const target of targets) {
     try {
+      // ВАЖНО: создаём новый ReadStream под каждый чат — после первого
+      // sendPhoto стрим закрывается, переиспользовать нельзя.
       const photo: InputFile = { source: fs.createReadStream(cardPath) };
       await bot.telegram.sendPhoto(target, photo, {
         caption,
@@ -64,20 +70,42 @@ export async function publishWeatherCard(
       logger.info(`Card photo sent to ${target}`);
 
       if (withPoll) {
-        await bot.telegram.sendPoll(
-          target,
-          buildPollQuestion(weather),
-          config.poll.options,
-          {
-            is_anonymous: false,
-            allows_multiple_answers: false,
-          },
-        );
+        await bot.telegram.sendPoll(target, pollQuestion, config.poll.options, {
+          is_anonymous: false,
+          allows_multiple_answers: false,
+        });
         logger.info(`Poll sent to ${target}`);
       }
+      okCount += 1;
     } catch (err) {
-      logger.error(`Failed to publish to ${target}:`, err);
+      // Логируем подробно — code, description, response от Telegram.
+      const e = err as {
+        message?: string;
+        code?: number;
+        description?: string;
+        response?: unknown;
+      };
+      logger.error(
+        `Failed to publish to ${target}: ${e.message ?? err} ` +
+          `(code=${e.code ?? '-'}, description=${e.description ?? '-'})`,
+      );
+      if (e.response) {
+        logger.error(`Telegram response for ${target}: ${JSON.stringify(e.response)}`);
+      }
+      failures.push({ target, error: err });
     }
+  }
+
+  logger.info(
+    `Publish summary: ok=${okCount}/${targets.length}, failed=${failures.length}`,
+  );
+
+  // Если ни один чат не получил карточку — это явная ошибка, делаем процесс
+  // упавшим, чтобы GitHub Actions подсветил жёлтый/красный значок.
+  if (okCount === 0 && targets.length > 0) {
+    throw new Error(
+      `All ${targets.length} target chat(s) failed. See logs above.`,
+    );
   }
 }
 
