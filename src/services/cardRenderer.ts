@@ -42,19 +42,55 @@ function weatherClass(code: number): string {
   return 'wx-clear';
 }
 
-function tempClass(temp: number): string {
-  const t = Math.round(temp);
-  if (t <= 0) return 'temp-cold';
-  if (t <= 10) return 'temp-chilly';
-  if (t <= 18) return 'temp-mild';
-  if (t <= 25) return 'temp-warm';
-  return 'temp-hot';
+// Анкеры цветовой шкалы: [temp, topColor, bottomColor].
+// Шаг отрисовки — 2°C (см. tempGradient ниже).
+const TEMP_SCALE: Array<[number, [number, number, number], [number, number, number]]> = [
+  [-24, [80, 80, 200], [30, 30, 110]],   // лютый мороз — индиго
+  [-12, [110, 175, 235], [40, 80, 165]], // мороз — голубой
+  [ -2, [140, 220, 235], [60, 130, 175]],// около нуля — лёд
+  [  6, [170, 220, 175], [85, 145, 100]],// прохлада — мятный
+  [ 14, [255, 200, 110], [205, 130,  55]],// тепло — янтарь
+  [ 22, [255, 130,  70], [200,  55,  60]],// жара — закатный
+  [ 32, [220,  40,  40], [120,   5,  20]] // пекло — раскалённый красный
+];
+
+function lerp(a: number, b: number, t: number): number {
+  return a + (b - a) * t;
+}
+
+function lerpColor(c1: [number, number, number], c2: [number, number, number], t: number): string {
+  const r = Math.round(lerp(c1[0], c2[0], t));
+  const g = Math.round(lerp(c1[1], c2[1], t));
+  const b = Math.round(lerp(c1[2], c2[2], t));
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+function tempGradient(tempCelsius: number): string {
+  // Округляем до шага 2°C — на этом шаге заметно меняется оттенок.
+  const t = Math.round(tempCelsius / 2) * 2;
+  const clamped = Math.max(TEMP_SCALE[0][0], Math.min(TEMP_SCALE[TEMP_SCALE.length - 1][0], t));
+
+  let lower = TEMP_SCALE[0];
+  let upper = TEMP_SCALE[TEMP_SCALE.length - 1];
+  for (let i = 0; i < TEMP_SCALE.length - 1; i++) {
+    if (clamped >= TEMP_SCALE[i][0] && clamped <= TEMP_SCALE[i + 1][0]) {
+      lower = TEMP_SCALE[i];
+      upper = TEMP_SCALE[i + 1];
+      break;
+    }
+  }
+  const span = upper[0] - lower[0];
+  const k = span === 0 ? 0 : (clamped - lower[0]) / span;
+  const top = lerpColor(lower[1], upper[1], k);
+  const bot = lerpColor(lower[2], upper[2], k);
+  return `linear-gradient(180deg, ${top} 0%, ${bot} 100%)`;
 }
 
 export async function renderCard(weather: WeatherSnapshot): Promise<string> {
   const template = await fs.readFile(TEMPLATE_PATH, 'utf-8');
   const description = describeWeather(weather.sunsetWeatherCode);
-  const bodyClass = `${weatherClass(weather.sunsetWeatherCode)} ${tempClass(weather.sunsetTemp)}`;
+  const bodyClass = weatherClass(weather.sunsetWeatherCode);
+  const tempGrad = tempGradient(weather.sunsetTemp);
 
   const wish = pickWish({
     temp: weather.sunsetTemp,
@@ -79,7 +115,8 @@ export async function renderCard(weather: WeatherSnapshot): Promise<string> {
     .replaceAll('{{SUNSET}}', formatTimeFromIso(weather.sunset))
     .replaceAll('{{WIND}}', weather.sunsetWind.toFixed(1))
     .replaceAll('{{WISH}}', wish)
-    .replaceAll('{{BODY_CLASS}}', bodyClass);
+    .replaceAll('{{BODY_CLASS}}', bodyClass)
+    .replaceAll('{{TEMP_GRADIENT}}', tempGrad);
 
   await fs.mkdir(path.dirname(config.card.outputPath), { recursive: true });
 

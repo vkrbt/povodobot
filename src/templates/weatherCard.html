@@ -21,7 +21,9 @@
     --glow-b: rgba(255, 107, 61, 0.35);
     --sun-grad: radial-gradient(circle, #ffd27a 0%, #ffb05a 55%, rgba(255,176,90,0) 70%);
     --horizon-grad: linear-gradient(180deg, rgba(255, 107, 61, 0) 0%, rgba(202, 75, 50, 0.18) 60%, rgba(82, 32, 60, 0.28) 100%);
-    --sunset-grad: linear-gradient(180deg, #ff7a3a 0%, #c63d4c 100%);
+    /* Цвет цифр заката: как у ветра/ощущается, но с оранжевым подтоном.
+       Тёмный — на светлых темах, светлый — на тёмных. Контраст всегда сохраняется. */
+    --sunset-ink: #3b1f0c;
     --temp-grad: linear-gradient(180deg, #ff7a3a 0%, #c63d4c 100%);
   }
 
@@ -66,6 +68,7 @@
     --line: rgba(255, 255, 255, 0.18);
     --tile-bg: rgba(255, 255, 255, 0.18);
     --wish-bg: rgba(10, 20, 40, 0.65);
+    --sunset-ink: #ffd9b3;
   }
   body.wx-sleet {
     --bg1: #c8d4e0;
@@ -104,14 +107,11 @@
     --line: rgba(255, 255, 255, 0.18);
     --tile-bg: rgba(255, 255, 255, 0.1);
     --wish-bg: rgba(255, 255, 255, 0.14);
+    --sunset-ink: #ffd9a3;
   }
 
-  /* === Temperature affects main temp gradient === */
-  body.temp-cold   { --temp-grad: linear-gradient(180deg, #7ab5ff 0%, #2855aa 100%); }
-  body.temp-chilly { --temp-grad: linear-gradient(180deg, #76d0e6 0%, #4080a8 100%); }
-  body.temp-mild   { --temp-grad: linear-gradient(180deg, #ffba5e 0%, #d56e2e 100%); }
-  body.temp-warm   { --temp-grad: linear-gradient(180deg, #ff7a3a 0%, #c63d4c 100%); }
-  body.temp-hot    { --temp-grad: linear-gradient(180deg, #ff5f3a 0%, #a8141d 100%); }
+  /* Главный градиент температуры приходит из cardRenderer (шаг 2°C). */
+  body { --temp-grad: {{TEMP_GRADIENT}}; }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
@@ -274,10 +274,7 @@
   }
   .tile.sunset .t-value {
     font-size: 96px;
-    background: var(--sunset-grad);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--sunset-ink);
     letter-spacing: -3px;
   }
 
