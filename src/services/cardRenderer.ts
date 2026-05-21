@@ -30,9 +30,31 @@ function formatDateLong(dateStr: string): string {
   return dayjs(dateStr).format('D MMMM');
 }
 
+function weatherClass(code: number): string {
+  // WMO -> визуальная категория
+  if (code <= 1) return 'wx-clear';
+  if (code <= 3) return 'wx-cloudy';
+  if (code === 45 || code === 48) return 'wx-fog';
+  if (code === 56 || code === 57 || code === 66 || code === 67) return 'wx-sleet';
+  if ((code >= 51 && code <= 65) || (code >= 80 && code <= 82)) return 'wx-rain';
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return 'wx-snow';
+  if (code >= 95) return 'wx-thunder';
+  return 'wx-clear';
+}
+
+function tempClass(temp: number): string {
+  const t = Math.round(temp);
+  if (t <= 0) return 'temp-cold';
+  if (t <= 10) return 'temp-chilly';
+  if (t <= 18) return 'temp-mild';
+  if (t <= 25) return 'temp-warm';
+  return 'temp-hot';
+}
+
 export async function renderCard(weather: WeatherSnapshot): Promise<string> {
   const template = await fs.readFile(TEMPLATE_PATH, 'utf-8');
   const description = describeWeather(weather.sunsetWeatherCode);
+  const bodyClass = `${weatherClass(weather.sunsetWeatherCode)} ${tempClass(weather.sunsetTemp)}`;
 
   const wish = pickWish({
     temp: weather.sunsetTemp,
@@ -56,7 +78,8 @@ export async function renderCard(weather: WeatherSnapshot): Promise<string> {
     .replaceAll('{{FEELS_LIKE}}', formatTemp(weather.sunsetFeelsLike))
     .replaceAll('{{SUNSET}}', formatTimeFromIso(weather.sunset))
     .replaceAll('{{WIND}}', weather.sunsetWind.toFixed(1))
-    .replaceAll('{{WISH}}', wish);
+    .replaceAll('{{WISH}}', wish)
+    .replaceAll('{{BODY_CLASS}}', bodyClass);
 
   await fs.mkdir(path.dirname(config.card.outputPath), { recursive: true });
 

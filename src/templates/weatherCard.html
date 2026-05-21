@@ -10,10 +10,109 @@
     --ink: #1a1530;
     --ink-soft: #4a3f6b;
     --paper: #fff6ec;
-    --accent: #ff6b3d;
-    --accent-2: #ffb347;
     --line: rgba(26, 21, 48, 0.12);
+    --tile-bg: rgba(255, 255, 255, 0.55);
+    --wish-bg: rgba(26, 21, 48, 0.78);
+    --wish-color: #fff5e6;
+    --bg1: #ffe8d4;
+    --bg2: #ffd1b3;
+    --bg3: #f6b690;
+    --glow-a: rgba(255, 220, 170, 0.55);
+    --glow-b: rgba(255, 107, 61, 0.35);
+    --sun-grad: radial-gradient(circle, #ffd27a 0%, #ffb05a 55%, rgba(255,176,90,0) 70%);
+    --horizon-grad: linear-gradient(180deg, rgba(255, 107, 61, 0) 0%, rgba(202, 75, 50, 0.18) 60%, rgba(82, 32, 60, 0.28) 100%);
+    --sunset-grad: linear-gradient(180deg, #ff7a3a 0%, #c63d4c 100%);
+    --temp-grad: linear-gradient(180deg, #ff7a3a 0%, #c63d4c 100%);
   }
+
+  /* === Weather themes === */
+  body.wx-clear {
+    --bg1: #ffe8d4;
+    --bg2: #ffd1b3;
+    --bg3: #f6b690;
+    --glow-a: rgba(255, 220, 170, 0.55);
+    --glow-b: rgba(255, 107, 61, 0.35);
+    --sun-grad: radial-gradient(circle, #ffd27a 0%, #ffb05a 55%, rgba(255,176,90,0) 70%);
+    --horizon-grad: linear-gradient(180deg, rgba(255, 107, 61, 0) 0%, rgba(202, 75, 50, 0.18) 60%, rgba(82, 32, 60, 0.28) 100%);
+  }
+  body.wx-cloudy {
+    --bg1: #e8e8ee;
+    --bg2: #c9cdd6;
+    --bg3: #a1a8b6;
+    --glow-a: rgba(255, 230, 200, 0.4);
+    --glow-b: rgba(70, 90, 130, 0.25);
+    --sun-grad: radial-gradient(circle, rgba(255, 235, 200, 0.45) 0%, rgba(255, 235, 200, 0) 70%);
+    --horizon-grad: linear-gradient(180deg, transparent 0%, rgba(40, 60, 100, 0.15) 60%, rgba(20, 30, 50, 0.3) 100%);
+  }
+  body.wx-fog {
+    --bg1: #e6e6ec;
+    --bg2: #c9c8d1;
+    --bg3: #a4a3ae;
+    --glow-a: rgba(255, 255, 255, 0.55);
+    --glow-b: rgba(180, 180, 200, 0.3);
+    --sun-grad: radial-gradient(circle, rgba(255, 255, 255, 0.55) 0%, rgba(255,255,255,0) 70%);
+    --horizon-grad: linear-gradient(180deg, transparent 0%, rgba(120, 120, 140, 0.2) 60%, rgba(80, 80, 100, 0.35) 100%);
+  }
+  body.wx-rain {
+    --bg1: #92a8c0;
+    --bg2: #5e7c98;
+    --bg3: #3c5570;
+    --glow-a: rgba(200, 220, 240, 0.3);
+    --glow-b: rgba(40, 60, 90, 0.35);
+    --sun-grad: radial-gradient(circle, rgba(200, 220, 240, 0.25) 0%, rgba(200,220,240,0) 70%);
+    --horizon-grad: linear-gradient(180deg, transparent 0%, rgba(20, 40, 70, 0.3) 60%, rgba(10, 20, 40, 0.45) 100%);
+    --ink: #f4f7fb;
+    --ink-soft: #c8d4e2;
+    --line: rgba(255, 255, 255, 0.18);
+    --tile-bg: rgba(255, 255, 255, 0.18);
+    --wish-bg: rgba(10, 20, 40, 0.65);
+  }
+  body.wx-sleet {
+    --bg1: #c8d4e0;
+    --bg2: #97acc6;
+    --bg3: #6582a3;
+    --glow-a: rgba(220, 230, 245, 0.5);
+    --glow-b: rgba(80, 110, 150, 0.3);
+    --sun-grad: radial-gradient(circle, rgba(230, 240, 255, 0.4) 0%, rgba(230,240,255,0) 70%);
+    --horizon-grad: linear-gradient(180deg, transparent 0%, rgba(40, 70, 110, 0.2) 60%, rgba(20, 40, 70, 0.35) 100%);
+    --ink: #16263e;
+    --ink-soft: #3a4d68;
+  }
+  body.wx-snow {
+    --bg1: #f3f6fa;
+    --bg2: #dde6f0;
+    --bg3: #b8c7d8;
+    --glow-a: rgba(255, 255, 255, 0.7);
+    --glow-b: rgba(160, 180, 210, 0.3);
+    --sun-grad: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, rgba(255,255,255,0) 70%);
+    --horizon-grad: linear-gradient(180deg, transparent 0%, rgba(140, 160, 190, 0.2) 60%, rgba(100, 120, 150, 0.32) 100%);
+    --ink: #1a2840;
+    --ink-soft: #4a5d7a;
+    --tile-bg: rgba(255, 255, 255, 0.75);
+  }
+  body.wx-thunder {
+    --bg1: #3e2e5a;
+    --bg2: #221838;
+    --bg3: #100a1e;
+    --glow-a: rgba(180, 140, 255, 0.32);
+    --glow-b: rgba(255, 90, 60, 0.28);
+    --sun-grad: radial-gradient(circle, rgba(255, 200, 120, 0.4) 0%, rgba(255, 200, 120, 0) 70%);
+    --horizon-grad: linear-gradient(180deg, transparent 0%, rgba(255, 90, 60, 0.2) 60%, rgba(10, 5, 25, 0.55) 100%);
+    --ink: #f5edff;
+    --ink-soft: #c4b6dc;
+    --paper: #f5edff;
+    --line: rgba(255, 255, 255, 0.18);
+    --tile-bg: rgba(255, 255, 255, 0.1);
+    --wish-bg: rgba(255, 255, 255, 0.14);
+  }
+
+  /* === Temperature affects main temp gradient === */
+  body.temp-cold   { --temp-grad: linear-gradient(180deg, #7ab5ff 0%, #2855aa 100%); }
+  body.temp-chilly { --temp-grad: linear-gradient(180deg, #76d0e6 0%, #4080a8 100%); }
+  body.temp-mild   { --temp-grad: linear-gradient(180deg, #ffba5e 0%, #d56e2e 100%); }
+  body.temp-warm   { --temp-grad: linear-gradient(180deg, #ff7a3a 0%, #c63d4c 100%); }
+  body.temp-hot    { --temp-grad: linear-gradient(180deg, #ff5f3a 0%, #a8141d 100%); }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
     width: var(--w);
@@ -27,22 +126,22 @@
   }
   body {
     background:
-      radial-gradient(circle at 78% 18%, rgba(255, 220, 170, 0.55), transparent 55%),
-      radial-gradient(circle at 12% 92%, rgba(255, 107, 61, 0.35), transparent 55%),
-      linear-gradient(180deg, #ffe8d4 0%, #ffd1b3 55%, #f6b690 100%);
+      radial-gradient(circle at 78% 18%, var(--glow-a), transparent 55%),
+      radial-gradient(circle at 12% 92%, var(--glow-b), transparent 55%),
+      linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%);
     padding: 56px 72px 24px;
     display: flex;
     flex-direction: column;
     position: relative;
     overflow: hidden;
   }
-  /* Декоративное солнце */
+  /* Декоративное солнце / диск */
   .sun {
     position: absolute;
     width: 360px; height: 360px;
     right: -90px; top: -90px;
     border-radius: 50%;
-    background: radial-gradient(circle, #ffd27a 0%, #ffb05a 55%, rgba(255,176,90,0) 70%);
+    background: var(--sun-grad);
     filter: blur(2px);
     z-index: 0;
   }
@@ -50,7 +149,7 @@
     position: absolute;
     left: 0; right: 0; bottom: 0;
     height: 36%;
-    background: linear-gradient(180deg, rgba(255, 107, 61, 0) 0%, rgba(202, 75, 50, 0.18) 60%, rgba(82, 32, 60, 0.28) 100%);
+    background: var(--horizon-grad);
     z-index: 0;
   }
 
@@ -73,19 +172,7 @@
   }
   .brand .dot {
     width: 14px; height: 14px; border-radius: 50%;
-    background: var(--accent);
-  }
-  .pill {
-    font-size: 26px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--ink);
-    background: rgba(255, 255, 255, 0.55);
-    border: 1px solid var(--line);
-    padding: 14px 26px;
-    border-radius: 999px;
-    backdrop-filter: blur(6px);
+    background: #ff6b3d;
   }
 
   /* === Hero === */
@@ -107,7 +194,7 @@
   }
   .when .sep {
     margin: 0 14px;
-    color: rgba(26, 21, 48, 0.35);
+    opacity: 0.45;
   }
 
   /* === Temperature row === */
@@ -123,7 +210,7 @@
     font-weight: 800;
     line-height: 0.86;
     letter-spacing: -12px;
-    background: linear-gradient(180deg, #ff7a3a 0%, #c63d4c 100%);
+    background: var(--temp-grad);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -151,7 +238,7 @@
     gap: 24px;
   }
   .tile {
-    background: rgba(255, 255, 255, 0.55);
+    background: var(--tile-bg);
     border: 1px solid var(--line);
     border-radius: 32px;
     padding: 30px 32px;
@@ -187,7 +274,7 @@
   }
   .tile.sunset .t-value {
     font-size: 96px;
-    background: linear-gradient(180deg, #ff7a3a 0%, #c63d4c 100%);
+    background: var(--sunset-grad);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -199,8 +286,8 @@
     z-index: 2;
     margin-top: 28px;
     padding: 28px 32px;
-    background: rgba(26, 21, 48, 0.78);
-    color: #fff5e6;
+    background: var(--wish-bg);
+    color: var(--wish-color);
     border-radius: 28px;
     display: flex;
     align-items: center;
@@ -221,7 +308,7 @@
   }
 </style>
 </head>
-<body>
+<body class="{{BODY_CLASS}}">
   <div class="sun"></div>
   <div class="horizon"></div>
 
