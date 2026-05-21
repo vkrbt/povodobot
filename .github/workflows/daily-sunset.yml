@@ -37,21 +37,24 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
-      # Ставим зависимости. Puppeteer сам скачает свой Chromium —
-      # на ubuntu-latest все системные библиотеки для него уже есть.
+      # Ставим зависимости без скачивания Chromium от Puppeteer —
+      # это убирает ~170MB загрузки в postinstall, из-за которой
+      # npm ci падал с "Exit handler never called!".
       - name: Install deps
         run: npm ci
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
 
-      - name: Debug — check @types/node
+      - name: Install system Chromium
         run: |
-          ls -la node_modules/@types/ || echo "no @types dir"
-          node -e "console.log(require('@types/node/package.json').version)" || echo "no @types/node"
-          npx tsc --version
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser
 
       - name: Build TypeScript
         run: npm run build
 
       - name: Publish daily card + poll
         run: node dist/cli/today.js
+        env:
+          PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
