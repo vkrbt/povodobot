@@ -12,35 +12,96 @@ import { pickWish } from './wishService';
 dayjs.locale('ru');
 
 const TEMPLATE_PATH = path.resolve(__dirname, '..', 'templates', 'weatherCard.html');
-// Apple Color Emoji (Linux build) — кладётся либо в repo:assets/fonts/, либо в dist:assets/fonts/.
-// Скачивается через `npm run fetch-fonts`.
-const EMOJI_FONT_CANDIDATES = [
-  path.resolve(__dirname, '..', '..', 'assets', 'fonts', 'AppleColorEmoji-Linux.ttf'),
-  path.resolve(__dirname, '..', '..', '..', 'assets', 'fonts', 'AppleColorEmoji-Linux.ttf'),
+
+// Шрифты лежат в assets/fonts/ и инлайнятся в страницу.
+// Скачивает их `npm run fetch-fonts`.
+const ASSETS_DIRS = [
+  path.resolve(__dirname, '..', '..', 'assets', 'fonts'),
+  path.resolve(__dirname, '..', '..', '..', 'assets', 'fonts'),
 ];
 
-let emojiFontCss: string | null | undefined;
+interface FontFace {
+  file: string;
+  family: string;
+  format: 'truetype' | 'woff2' | 'opentype';
+  mime: string;
+  weight?: string;
+  style?: string;
+}
 
-async function loadEmojiFontCss(): Promise<string | null> {
-  if (emojiFontCss !== undefined) return emojiFontCss;
-  for (const candidate of EMOJI_FONT_CANDIDATES) {
+const FONT_FACES: FontFace[] = [
+  {
+    file: 'Inter-Variable.woff2',
+    family: 'Inter',
+    format: 'woff2',
+    mime: 'font/woff2',
+    weight: '100 900',
+    style: 'normal',
+  },
+  {
+    file: 'Inter-Variable-Italic.woff2',
+    family: 'Inter',
+    format: 'woff2',
+    mime: 'font/woff2',
+    weight: '100 900',
+    style: 'italic',
+  },
+  {
+    file: 'AppleColorEmoji-Linux.ttf',
+    family: 'Apple Color Emoji Linux',
+    format: 'truetype',
+    mime: 'font/ttf',
+    weight: 'normal',
+    style: 'normal',
+  },
+];
+
+let inlinedFontsCss: string | null | undefined;
+
+async function findFont(file: string): Promise<string | null> {
+  for (const dir of ASSETS_DIRS) {
+    const candidate = path.join(dir, file);
     try {
-      const buf = await fs.readFile(candidate);
-      const b64 = buf.toString('base64');
-      emojiFontCss = `@font-face {
-  font-family: 'Apple Color Emoji Linux';
-  src: url(data:font/ttf;base64,${b64}) format('truetype');
-  font-display: block;
-}`;
-      logger.info(`Loaded emoji font from ${candidate} (${(buf.length / 1024 / 1024).toFixed(1)} MB)`);
-      return emojiFontCss;
+      await fs.access(candidate);
+      return candidate;
     } catch {
-      // try next path
+      // try next
     }
   }
-  logger.warn('Apple Color Emoji font not found in assets/fonts/. Run `npm run fetch-fonts`. Falling back to system emoji.');
-  emojiFontCss = null;
-  return emojiFontCss;
+  return null;
+}
+
+async function loadInlinedFontsCss(): Promise<string | null> {
+  if (inlinedFontsCss !== undefined) return inlinedFontsCss;
+  const blocks: string[] = [];
+  let totalBytes = 0;
+  for (const face of FONT_FACES) {
+    const filePath = await findFont(face.file);
+    if (!filePath) {
+      logger.warn(`Font ${face.file} not found in assets/fonts/. Run \`npm run fetch-fonts\`. The card may look off.`);
+      continue;
+    }
+    const buf = await fs.readFile(filePath);
+    totalBytes += buf.length;
+    const b64 = buf.toString('base64');
+    const lines = [
+      '@font-face {',
+      `  font-family: '${face.family}';`,
+      `  src: url(data:${face.mime};base64,${b64}) format('${face.format}');`,
+      face.weight ? `  font-weight: ${face.weight};` : '',
+      face.style ? `  font-style: ${face.style};` : '',
+      '  font-display: block;',
+      '}',
+    ].filter(Boolean);
+    blocks.push(lines.join('\n'));
+  }
+  if (blocks.length === 0) {
+    inlinedFontsCss = null;
+    return inlinedFontsCss;
+  }
+  logger.info(`Inlined ${blocks.length} font faces (${(totalBytes / 1024 / 1024).toFixed(1)} MB total)`);
+  inlinedFontsCss = blocks.join('\n');
+  return inlinedFontsCss;
 }
 
 function formatTimeFromIso(iso: string): string {
@@ -168,7 +229,7 @@ export async function renderCard(weather: WeatherSnapshot): Promise<string> {
       height: config.card.height,
       deviceScaleFactor: 1,
     });
-    const fontCss = await loadEmojiFontCss();
+    const fontCss = await loadInlinedFontsCss();
     if (fontCss) {
       await page.setContent(html, { waitUntil: 'load' });
       await page.addStyleTag({ content: fontCss });
