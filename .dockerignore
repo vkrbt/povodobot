@@ -1,0 +1,11 @@
+node_modules
+dist
+output
+.env
+.git
+.gitignore
+*.log
+.DS_Store
+plans
+README.md
+scripts

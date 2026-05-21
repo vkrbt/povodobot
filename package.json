@@ -1,0 +1,29 @@
+{
+  "name": "meet-bot",
+  "version": "0.1.0",
+  "description": "Telegram bot that posts a daily weather card for Minsk and a sunset attendance poll",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc && npm run copy-templates",
+    "copy-templates": "node -e \"const fs=require('fs'),p=require('path');const s=p.join('src','templates'),d=p.join('dist','templates');fs.mkdirSync(d,{recursive:true});for(const f of fs.readdirSync(s))fs.copyFileSync(p.join(s,f),p.join(d,f));\"",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "today": "ts-node src/cli/today.ts"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "dayjs": "^1.11.10",
+    "dotenv": "^16.4.5",
+    "node-cron": "^3.0.3",
+    "puppeteer": "^22.6.0",
+    "telegraf": "^4.16.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@types/node-cron": "^3.0.11",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.3"
+  }
+}

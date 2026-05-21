@@ -1,0 +1,26 @@
+# Конфиг Fly.io. Перед деплоем переименуй app и регион при необходимости.
+# Регионы рядом с Минском: "waw" (Warsaw), "ams" (Amsterdam), "fra" (Frankfurt).
+app = "minsk-sunset-bot"
+primary_region = "waw"
+
+[build]
+
+[env]
+  TIMEZONE = "Europe/Minsk"
+  PUPPETEER_SKIP_DOWNLOAD = "true"
+  PUPPETEER_EXECUTABLE_PATH = "/usr/bin/chromium"
+  NODE_ENV = "production"
+
+# Один постоянно работающий инстанс. HTTP-сервисы не нужны — бот ходит сам по long polling.
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+  cpus = 1
+
+# Без public-сервисов: машина не должна засыпать
+[processes]
+  app = "node dist/index.js"
+
+# Запретить авто-остановку (важно для long polling и cron)
+[[restart]]
+  policy = "always"

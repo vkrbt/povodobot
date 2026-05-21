@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<title>Sunset Card</title>
+<style>
+  :root {
+    --w: {{WIDTH}}px;
+    --h: {{HEIGHT}}px;
+    --ink: #1a1530;
+    --ink-soft: #4a3f6b;
+    --paper: #fff6ec;
+    --accent: #ff6b3d;
+    --accent-2: #ffb347;
+    --line: rgba(26, 21, 48, 0.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: var(--w);
+    height: var(--h);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+      "Inter", "Helvetica Neue", "Apple Color Emoji", "Segoe UI Emoji",
+      sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background:
+      radial-gradient(circle at 78% 18%, rgba(255, 220, 170, 0.55), transparent 55%),
+      radial-gradient(circle at 12% 92%, rgba(255, 107, 61, 0.35), transparent 55%),
+      linear-gradient(180deg, #ffe8d4 0%, #ffd1b3 55%, #f6b690 100%);
+    padding: 56px 72px 24px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+  /* Декоративное солнце */
+  .sun {
+    position: absolute;
+    width: 360px; height: 360px;
+    right: -90px; top: -90px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ffd27a 0%, #ffb05a 55%, rgba(255,176,90,0) 70%);
+    filter: blur(2px);
+    z-index: 0;
+  }
+  .horizon {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 36%;
+    background: linear-gradient(180deg, rgba(255, 107, 61, 0) 0%, rgba(202, 75, 50, 0.18) 60%, rgba(82, 32, 60, 0.28) 100%);
+    z-index: 0;
+  }
+
+  /* === Header === */
+  .head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 2;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .brand .dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--accent);
+  }
+  .pill {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid var(--line);
+    padding: 14px 26px;
+    border-radius: 999px;
+    backdrop-filter: blur(6px);
+  }
+
+  /* === Hero === */
+  .hero {
+    z-index: 2;
+    margin-top: 24px;
+  }
+  .city {
+    font-size: 104px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -3px;
+  }
+  .when {
+    margin-top: 14px;
+    font-size: 36px;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+  .when .sep {
+    margin: 0 14px;
+    color: rgba(26, 21, 48, 0.35);
+  }
+
+  /* === Temperature row === */
+  .temp-row {
+    z-index: 2;
+    margin-top: auto;
+    display: flex;
+    align-items: flex-end;
+    gap: 32px;
+  }
+  .temp {
+    font-size: 300px;
+    font-weight: 800;
+    line-height: 0.86;
+    letter-spacing: -12px;
+    background: linear-gradient(180deg, #ff7a3a 0%, #c63d4c 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .temp-meta {
+    padding-bottom: 36px;
+  }
+  .emoji {
+    font-size: 120px;
+    line-height: 1;
+    margin-bottom: 10px;
+  }
+  .label {
+    font-size: 40px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  /* === Tiles === */
+  .tiles {
+    z-index: 2;
+    margin-top: 32px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .tile {
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid var(--line);
+    border-radius: 32px;
+    padding: 30px 32px;
+    backdrop-filter: blur(8px);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 168px;
+  }
+  .tile .t-label {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .tile .t-value {
+    font-size: 76px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -2px;
+    color: var(--ink);
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    white-space: nowrap;
+  }
+  .tile .t-suffix {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    letter-spacing: 0;
+  }
+  .tile.sunset .t-value {
+    font-size: 96px;
+    background: linear-gradient(180deg, #ff7a3a 0%, #c63d4c 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -3px;
+  }
+
+  /* === Wish === */
+  .wish {
+    z-index: 2;
+    margin-top: 28px;
+    padding: 28px 32px;
+    background: rgba(26, 21, 48, 0.78);
+    color: #fff5e6;
+    border-radius: 28px;
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    backdrop-filter: blur(6px);
+  }
+  .wish .icon {
+    font-size: 44px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .wish .text {
+    font-size: 28px;
+    font-weight: 500;
+    line-height: 1.35;
+    font-style: italic;
+    letter-spacing: 0.1px;
+  }
+</style>
+</head>
+<body>
+  <div class="sun"></div>
+  <div class="horizon"></div>
+
+  <div class="head">
+    <div class="brand"><span class="dot"></span> {{WEEKDAY_UPPER}}</div>
+  </div>
+
+  <div class="hero">
+    <div class="city">{{CITY}}</div>
+    <div class="when">
+      <span>{{DATE_LONG}}</span>
+      <span class="sep">·</span>
+      <span>закат сегодня в {{SUNSET}}</span>
+    </div>
+  </div>
+
+  <div class="temp-row">
+    <div class="temp">{{TEMP_SUNSET}}</div>
+    <div class="temp-meta">
+      <div class="emoji">{{EMOJI}}</div>
+      <div class="label">{{WEATHER_LABEL}}</div>
+    </div>
+  </div>
+
+  <div class="tiles">
+    <div class="tile">
+      <div class="t-label">Ощущается</div>
+      <div class="t-value">{{FEELS_LIKE}}</div>
+    </div>
+    <div class="tile">
+      <div class="t-label">Ветер</div>
+      <div class="t-value">{{WIND}}<span class="t-suffix">м/с</span></div>
+    </div>
+    <div class="tile sunset">
+      <div class="t-label">Закат</div>
+      <div class="t-value">{{SUNSET}}</div>
+    </div>
+  </div>
+
+  <div class="wish">
+    <div class="icon">✦</div>
+    <div class="text">{{WISH}}</div>
+  </div>
+</body>
+</html>

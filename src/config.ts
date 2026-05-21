@@ -1,0 +1,70 @@
+import 'dotenv/config';
+import path from 'path';
+
+function required(name: string): string {
+  const value = process.env[name];
+  if (!value || value.trim() === '') {
+    throw new Error(`Missing required env variable: ${name}`);
+  }
+  return value;
+}
+
+function optional(name: string, fallback: string): string {
+  const value = process.env[name];
+  return value && value.trim() !== '' ? value : fallback;
+}
+
+function asNumber(name: string, fallback: number): number {
+  const raw = process.env[name];
+  if (!raw) return fallback;
+  const n = Number(raw);
+  if (Number.isNaN(n)) {
+    throw new Error(`Env ${name} must be a number, got: ${raw}`);
+  }
+  return n;
+}
+
+function asChatIds(): string[] {
+  // Принимаем CHAT_IDS (несколько через запятую) и/или CHAT_ID (один — для обратной совместимости)
+  const multi = process.env.CHAT_IDS ?? '';
+  const single = process.env.CHAT_ID ?? '';
+  const raw = [...multi.split(','), single]
+    .map((v) => v.trim())
+    .filter((v) => v.length > 0);
+  const unique = Array.from(new Set(raw));
+  if (unique.length === 0) {
+    throw new Error('Missing required env: CHAT_IDS (или CHAT_ID)');
+  }
+  return unique;
+}
+
+export const config = {
+  botToken: required('BOT_TOKEN'),
+  /** Список целевых чатов. Первый в списке считается "основным". */
+  chatIds: asChatIds(),
+  cronSchedule: optional('CRON_SCHEDULE', '0 12 * * *'),
+  timezone: optional('TIMEZONE', 'Europe/Minsk'),
+  city: {
+    name: optional('CITY_NAME', 'Минск'),
+    latitude: asNumber('LATITUDE', 53.9),
+    longitude: asNumber('LONGITUDE', 27.5667),
+  },
+  card: {
+    width: asNumber('CARD_WIDTH', 1080),
+    height: asNumber('CARD_HEIGHT', 1080),
+    outputPath: path.resolve(
+      process.cwd(),
+      optional('OUTPUT_PATH', 'output/weather-card.png'),
+    ),
+  },
+  poll: {
+    question: optional('POLL_QUESTION', 'Кто сегодня идёт смотреть закат?'),
+    options: [
+      optional('POLL_OPTION_YES', 'Приду'),
+      optional('POLL_OPTION_MAYBE', 'Возможно'),
+      optional('POLL_OPTION_NO', 'Не приду'),
+    ],
+  },
+};
+
+export type AppConfig = typeof config;

@@ -1,0 +1,48 @@
+name: Daily sunset post
+
+on:
+  schedule:
+    # 09:00 UTC = 12:00 Europe/Minsk (зимой и летом, т.к. Минск UTC+3 круглый год)
+    - cron: '0 9 * * *'
+  workflow_dispatch: {}    # позволяет запустить вручную из вкладки Actions
+
+concurrency:
+  group: daily-sunset
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+      CHAT_IDS: ${{ secrets.CHAT_IDS }}
+      TIMEZONE: Europe/Minsk
+      CITY_NAME: Минск
+      LATITUDE: '53.9'
+      LONGITUDE: '27.5667'
+      CARD_WIDTH: '1080'
+      CARD_HEIGHT: '1080'
+      OUTPUT_PATH: output/weather-card.png
+      POLL_QUESTION: Кто сегодня идёт смотреть закат?
+      POLL_OPTION_YES: Приду
+      POLL_OPTION_MAYBE: Возможно
+      POLL_OPTION_NO: Не приду
+      # Cron в GH Actions не используется внутри процесса, просто стоит чтобы конфиг не падал
+      CRON_SCHEDULE: '0 12 * * *'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # Ставим зависимости. Puppeteer сам скачает свой Chromium —
+      # на ubuntu-latest все системные библиотеки для него уже есть.
+      - name: Install deps
+        run: npm ci
+
+      - name: Publish daily card + poll
+        run: npm run today
