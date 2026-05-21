@@ -46,10 +46,15 @@ jobs:
         env:
           PUPPETEER_SKIP_DOWNLOAD: 'true'
 
-      - name: Install system Chromium
+      # На ubuntu-latest уже стоит Google Chrome stable —
+      # это надёжнее, чем snap-овый chromium-browser.
+      # Ставим только color-emoji шрифт, остальные системные
+      # шрифты (Noto / DejaVu / кириллица) уже есть из коробки.
+      - name: Install emoji fonts
         run: |
           sudo apt-get update
-          sudo apt-get install -y chromium-browser
+          sudo apt-get install -y fonts-noto-color-emoji
+          fc-cache -f
 
       - name: Build TypeScript
         run: npm run build
@@ -57,4 +62,4 @@ jobs:
       - name: Publish daily card + poll
         run: node dist/cli/today.js
         env:
-          PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
+          PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome-stable
