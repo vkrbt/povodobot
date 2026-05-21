@@ -16,6 +16,7 @@ jobs:
     timeout-minutes: 5
     env:
       BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+      # Несколько чатов через запятую — карточка и опрос уйдут в каждый из них.
       CHAT_IDS: ${{ secrets.CHAT_IDS }}
       TIMEZONE: Europe/Minsk
       CITY_NAME: Минск
@@ -24,10 +25,9 @@ jobs:
       CARD_WIDTH: '1080'
       CARD_HEIGHT: '1080'
       OUTPUT_PATH: output/weather-card.png
-      POLL_QUESTION: Кто сегодня идёт смотреть закат?
-      POLL_OPTION_YES: Приду
-      POLL_OPTION_MAYBE: Возможно
-      POLL_OPTION_NO: Не приду
+      # Текст вопроса и варианты ответа — берутся из дефолтов в src/config.ts
+      # (несколько шаблонов вопроса с {sunset}/{meetBefore} и emoji-варианты).
+      # При желании можно переопределить через секреты POLL_QUESTIONS / POLL_OPTION_*.
       # Cron в GH Actions не используется внутри процесса, просто стоит чтобы конфиг не падал
       CRON_SCHEDULE: '0 12 * * *'
 
