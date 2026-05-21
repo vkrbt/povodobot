@@ -90,9 +90,9 @@ export const config = {
       if (fromEnv.length > 0) return fromEnv;
       return [
         'Смотрим закат сегодня в {sunset}, встречаемся за ~{meetBefore} минут до заката',
-        'Сегодня закат в {sunset} — сбор за {meetBefore} минут до. Кто с нами?',
+        'Сегодня закат в {sunset} — сбор за {meetBefore} минут до. Ты нами?',
         'Закат сегодня в {sunset}. Встречаемся минут за {meetBefore} — кто идёт?',
-        'Солнце садится в {sunset}, выходим за ~{meetBefore} минут. Идём смотреть?',
+        'Солнце садится в {sunset}, встречаемся за ~{meetBefore} минут. Идём смотреть?',
         'Сегодня закат в {sunset}. Встреча за {meetBefore} мин до. Как настрой?',
       ];
     })(),
