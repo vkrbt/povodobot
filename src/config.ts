@@ -58,11 +58,35 @@ export const config = {
     ),
   },
   poll: {
-    question: optional('POLL_QUESTION', 'Кто сегодня идёт смотреть закат?'),
+    /**
+     * Сколько минут до заката встречаемся. Подставляется в {meetBefore}.
+     */
+    meetBeforeMinutes: asNumber('POLL_MEET_BEFORE_MIN', 20),
+    /**
+     * Несколько вариантов вопроса — каждый день выбирается случайный.
+     * Плейсхолдеры: {sunset} — время заката HH:mm, {meetBefore} — минуты.
+     * Можно переопределить через POLL_QUESTIONS (варианты через `|`)
+     * или одним вариантом через POLL_QUESTION.
+     */
+    questionTemplates: (() => {
+      const env = process.env.POLL_QUESTIONS ?? process.env.POLL_QUESTION ?? '';
+      const fromEnv = env
+        .split('|')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+      if (fromEnv.length > 0) return fromEnv;
+      return [
+        'Смотрим закат сегодня в {sunset}, встречаемся за ~{meetBefore} минут до заката',
+        'Сегодня закат в {sunset} — сбор за {meetBefore} минут до. Кто с нами?',
+        'Закат сегодня в {sunset}. Встречаемся минут за {meetBefore} — кто идёт?',
+        'Солнце садится в {sunset}, выходим за ~{meetBefore} минут. Идём смотреть?',
+        'Сегодня закат в {sunset}. Встреча за {meetBefore} мин до. Как настрой?',
+      ];
+    })(),
     options: [
-      optional('POLL_OPTION_YES', 'Приду'),
-      optional('POLL_OPTION_MAYBE', 'Возможно'),
-      optional('POLL_OPTION_NO', 'Не приду'),
+      optional('POLL_OPTION_YES', '🌇 Дааа, смотрим вместе'),
+      optional('POLL_OPTION_CHAT', '💬 Смотрю с вами, но в чате'),
+      optional('POLL_OPTION_NO', '🙅 Не смотрю'),
     ],
   },
 };

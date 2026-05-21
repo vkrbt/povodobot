@@ -12,6 +12,18 @@ function buildCaption(weather: WeatherSnapshot): string {
   return `Закат в <b>${sunset}</b>`;
 }
 
+function pickPollTemplate(): string {
+  const templates = config.poll.questionTemplates;
+  return templates[Math.floor(Math.random() * templates.length)];
+}
+
+function buildPollQuestion(weather: WeatherSnapshot): string {
+  const sunset = dayjs(weather.sunset).format('HH:mm');
+  return pickPollTemplate()
+    .replace('{sunset}', sunset)
+    .replace('{meetBefore}', String(config.poll.meetBeforeMinutes));
+}
+
 export interface PublishOptions {
   /**
    * Куда отправлять. По умолчанию — все чаты из config.chatIds.
@@ -54,7 +66,7 @@ export async function publishWeatherCard(
       if (withPoll) {
         await bot.telegram.sendPoll(
           target,
-          config.poll.question,
+          buildPollQuestion(weather),
           config.poll.options,
           {
             is_anonymous: false,
