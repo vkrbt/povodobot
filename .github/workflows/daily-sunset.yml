@@ -44,6 +44,12 @@ jobs:
       - name: Install deps
         run: npm ci
 
+      - name: Debug — check @types/node
+        run: |
+          ls -la node_modules/@types/ || echo "no @types dir"
+          node -e "console.log(require('@types/node/package.json').version)" || echo "no @types/node"
+          npx tsc --version
+
       - name: Build TypeScript
         run: npm run build
 
