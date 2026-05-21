@@ -42,9 +42,7 @@ jobs:
       # Ставим зависимости. Puppeteer сам скачает свой Chromium —
       # на ubuntu-latest все системные библиотеки для него уже есть.
       - name: Install deps
-        run: npm ci --include=dev
-        env:
-          NODE_ENV: development
+        run: npm ci
 
       - name: Build TypeScript
         run: npm run build
