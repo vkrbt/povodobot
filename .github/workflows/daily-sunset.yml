@@ -38,54 +38,10 @@ jobs:
         with:
           node-version: '22'
 
-      # --ignore-scripts отключает все postinstall-хуки,
-      # в т.ч. puppeteer'овский install.mjs, который на GH-runner-ах
-      # подвисает на 72с и приводит к "Exit handler never called!".
-      # Нам он не нужен: Chromium берём системный (см. PUPPETEER_EXECUTABLE_PATH ниже),
-      # а никакие другие наши зависимости postinstall не используют.
-      - name: Diagnostics — env, disk, memory
-        shell: bash
-        run: |
-          echo "=== node / npm ==="; node -v; npm -v
-          echo "=== cpu / mem ==="; nproc; free -h
-          echo "=== disk ==="; df -h /
-          echo "=== ulimit ==="; ulimit -a
-          echo "=== network reachability ==="; curl -sSI https://registry.npmjs.org/ | head -5 || echo "registry unreachable"
-          curl -sSI https://github.com | head -3 || echo "github unreachable"
-          echo "=== package-lock head ==="; head -40 package-lock.json
-          echo "=== puppeteer entry in lock ==="; grep -n '"puppeteer"' package-lock.json | head -5
-          echo "=== lock size ==="; wc -l package-lock.json
-
-      - name: Install deps (verbose, no scripts)
-        shell: bash
-        run: |
-          set -euo pipefail
-          # таймстамп каждой строки + npm timing + verbose
-          # ts работает через moreutils, на ubuntu-latest он предустановлен
-          export NPM_CONFIG_LOGLEVEL=verbose
-          export NPM_CONFIG_PROGRESS=false
-          export NPM_CONFIG_FUND=false
-          export NPM_CONFIG_AUDIT=false
-          export NPM_CONFIG_TIMING=true
-          echo "::group::npm ci"
-          # запускаем npm ci с трассировкой времени; если зависнет —
-          # GH прервёт по timeout-minutes, но мы хотя бы увидим где встал
-          /usr/bin/time -v npm ci --ignore-scripts --no-audit --no-fund 2>&1 | ts '[%H:%M:%S]' || {
-            ec=$?
-            echo "::endgroup::"
-            echo "npm ci failed with exit code $ec"
-            echo "::group::npm debug log"
-            ls -la /home/runner/.npm/_logs/ || true
-            cat /home/runner/.npm/_logs/*-debug-0.log 2>/dev/null | tail -300 || true
-            echo "::endgroup::"
-            exit $ec
-          }
-          echo "::endgroup::"
-          echo "::group::node_modules summary"
-          du -sh node_modules
-          ls node_modules/@types/ || true
-          node -e "console.log('puppeteer:', require('puppeteer/package.json').version)" || true
-          echo "::endgroup::"
+      # --ignore-scripts отключает все postinstall-хуки puppeteer.
+      # Сhromium берём системный через PUPPETEER_EXECUTABLE_PATH ниже.
+      - name: Install deps
+        run: npm ci --ignore-scripts --no-audit --no-fund
         env:
           PUPPETEER_SKIP_DOWNLOAD: 'true'
 
