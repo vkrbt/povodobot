@@ -30,7 +30,20 @@ function asChatIds(): string[] {
   const single = process.env.CHAT_ID ?? '';
   const raw = [...multi.split(','), single]
     .map((v) => v.trim())
+    // Иногда в секрет случайно копируют целую строку "CHAT_IDS=-100123,..." —
+    // отрезаем такие префиксы, чтобы не получить невалидный id вида "CHAT_IDS=-100123".
+    .map((v) => v.replace(/^[A-Za-z_][A-Za-z0-9_]*\s*=\s*/, ''))
+    .map((v) => v.trim())
     .filter((v) => v.length > 0);
+  // Минимальная валидация: id чата — это либо отрицательное число (группы/каналы),
+  // либо положительное (личка). Никаких других символов быть не должно.
+  const invalid = raw.filter((v) => !/^-?\d+$/.test(v));
+  if (invalid.length > 0) {
+    throw new Error(
+      `Invalid chat id(s) in CHAT_IDS/CHAT_ID: ${JSON.stringify(invalid)}. ` +
+        `Expected comma-separated integers like "-1001234567890,-1009876543210".`,
+    );
+  }
   const unique = Array.from(new Set(raw));
   if (unique.length === 0) {
     throw new Error('Missing required env: CHAT_IDS (или CHAT_ID)');
