@@ -12,7 +12,7 @@
     "today": "ts-node src/cli/today.ts"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "dependencies": {
     "@types/node": "20.19.39",

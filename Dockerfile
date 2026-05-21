@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM node:20-slim AS base
+FROM node:22-slim AS base
 
 # Системный Chromium для Puppeteer (вместо bundled — экономит размер образа)
 RUN apt-get update && apt-get install -y --no-install-recommends \

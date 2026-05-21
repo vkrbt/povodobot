@@ -36,13 +36,18 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
-      # Ставим зависимости без скачивания Chromium от Puppeteer —
-      # это убирает ~170MB загрузки в postinstall, из-за которой
-      # npm ci падал с "Exit handler never called!".
+      # npm 10.8.2 в Node 20 имеет известный баг "Exit handler never called!"
+      # на больших package-lock — стартуем с актуальным npm.
+      # PUPPETEER_SKIP_DOWNLOAD дополнительно ускоряет install,
+      # системный Google Chrome используется как PUPPETEER_EXECUTABLE_PATH ниже.
       - name: Install deps
-        run: npm ci
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --global npm@latest
+          npm ci --no-audit --no-fund
         env:
           PUPPETEER_SKIP_DOWNLOAD: 'true'
 
