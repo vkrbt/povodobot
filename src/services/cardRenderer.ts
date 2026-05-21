@@ -12,6 +12,36 @@ import { pickWish } from './wishService';
 dayjs.locale('ru');
 
 const TEMPLATE_PATH = path.resolve(__dirname, '..', 'templates', 'weatherCard.html');
+// Apple Color Emoji (Linux build) — кладётся либо в repo:assets/fonts/, либо в dist:assets/fonts/.
+// Скачивается через `npm run fetch-fonts`.
+const EMOJI_FONT_CANDIDATES = [
+  path.resolve(__dirname, '..', '..', 'assets', 'fonts', 'AppleColorEmoji-Linux.ttf'),
+  path.resolve(__dirname, '..', '..', '..', 'assets', 'fonts', 'AppleColorEmoji-Linux.ttf'),
+];
+
+let emojiFontCss: string | null | undefined;
+
+async function loadEmojiFontCss(): Promise<string | null> {
+  if (emojiFontCss !== undefined) return emojiFontCss;
+  for (const candidate of EMOJI_FONT_CANDIDATES) {
+    try {
+      const buf = await fs.readFile(candidate);
+      const b64 = buf.toString('base64');
+      emojiFontCss = `@font-face {
+  font-family: 'Apple Color Emoji Linux';
+  src: url(data:font/ttf;base64,${b64}) format('truetype');
+  font-display: block;
+}`;
+      logger.info(`Loaded emoji font from ${candidate} (${(buf.length / 1024 / 1024).toFixed(1)} MB)`);
+      return emojiFontCss;
+    } catch {
+      // try next path
+    }
+  }
+  logger.warn('Apple Color Emoji font not found in assets/fonts/. Run `npm run fetch-fonts`. Falling back to system emoji.');
+  emojiFontCss = null;
+  return emojiFontCss;
+}
 
 function formatTimeFromIso(iso: string): string {
   return dayjs(iso).format('HH:mm');
@@ -138,7 +168,17 @@ export async function renderCard(weather: WeatherSnapshot): Promise<string> {
       height: config.card.height,
       deviceScaleFactor: 1,
     });
-    await page.setContent(html, { waitUntil: 'networkidle0' });
+    const fontCss = await loadEmojiFontCss();
+    if (fontCss) {
+      await page.setContent(html, { waitUntil: 'load' });
+      await page.addStyleTag({ content: fontCss });
+      // Дождаться, пока браузер реально распарсит и подгрузит шрифт из data: URL.
+      // document.fonts.ready живёт в браузере; чтобы tsc не требовал lib:dom,
+      // отдаём eval как строку.
+      await page.evaluate('document.fonts.ready');
+    } else {
+      await page.setContent(html, { waitUntil: 'networkidle0' });
+    }
     await page.screenshot({
       path: config.card.outputPath as `${string}.png`,
       type: 'png',

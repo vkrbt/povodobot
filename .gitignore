@@ -4,3 +4,7 @@ output/
 .env
 *.log
 .DS_Store
+
+# Apple emoji font fetched on demand via `npm run fetch-fonts`
+assets/fonts/*.ttf
+assets/fonts/*.otf
