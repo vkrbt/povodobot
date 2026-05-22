@@ -52,11 +52,12 @@ function mostFrequent(values: number[]): number {
 
 /**
  * Open-Meteo возвращает hourly.time как "YYYY-MM-DDTHH:00" в локальной
- * таймзоне запроса. Сравниваем как строки до минут, поэтому достаточно
- * вычесть/прибавить часы как целые значения по полю времени.
+ * таймзоне запроса. Возвращаем индекс единственного часа, ближайшего к
+ * закату — нам нужна температура/ветер/код именно «на закате», без
+ * усреднения по соседним часам (раньше брали ±1 час, что давало
+ * скорее «вечернее среднее»).
  */
-function selectWindowIndices(times: string[], sunset: string): number[] {
-  // Найдём индекс часа, ближайшего к закату
+function selectSunsetHourIndex(times: string[], sunset: string): number {
   const sunsetTime = new Date(sunset).getTime();
   let nearest = 0;
   let nearestDelta = Number.POSITIVE_INFINITY;
@@ -68,13 +69,7 @@ function selectWindowIndices(times: string[], sunset: string): number[] {
       nearest = i;
     }
   }
-  // Окно ±1 час — соседние индексы (часовая сетка)
-  const result: number[] = [];
-  for (const offset of [-1, 0, 1]) {
-    const i = nearest + offset;
-    if (i >= 0 && i < times.length) result.push(i);
-  }
-  return result;
+  return nearest;
 }
 
 export async function fetchWeather(): Promise<WeatherSnapshot> {
@@ -105,15 +100,18 @@ export async function fetchWeather(): Promise<WeatherSnapshot> {
   }
 
   const sunset = data.daily.sunset[0];
-  const idx = selectWindowIndices(data.hourly.time, sunset);
+  const i = selectSunsetHourIndex(data.hourly.time, sunset);
+  logger.info(
+    `Sunset weather: sunset=${sunset}, using hourly slot ${data.hourly.time[i]} (idx=${i})`,
+  );
 
   return {
     city: config.city.name,
     date: data.daily.time[0],
-    sunsetTemp: avg(idx.map((i) => data.hourly.temperature_2m[i])),
-    sunsetFeelsLike: avg(idx.map((i) => data.hourly.apparent_temperature[i])),
-    sunsetWind: avg(idx.map((i) => data.hourly.wind_speed_10m[i])),
-    sunsetWeatherCode: mostFrequent(idx.map((i) => data.hourly.weather_code[i])),
+    sunsetTemp: data.hourly.temperature_2m[i],
+    sunsetFeelsLike: data.hourly.apparent_temperature[i],
+    sunsetWind: data.hourly.wind_speed_10m[i],
+    sunsetWeatherCode: data.hourly.weather_code[i],
     sunset,
     sunrise: data.daily.sunrise[0],
   };
