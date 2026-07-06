@@ -56,7 +56,7 @@ const FONT_FACES: FontFace[] = [
   },
 ];
 
-let inlinedFontsCss: string | null | undefined;
+let fontFaceCss: string | null | undefined;
 
 async function findFont(file: string): Promise<string | null> {
   for (const dir of ASSETS_DIRS) {
@@ -71,23 +71,21 @@ async function findFont(file: string): Promise<string | null> {
   return null;
 }
 
-async function loadInlinedFontsCss(): Promise<string | null> {
-  if (inlinedFontsCss !== undefined) return inlinedFontsCss;
+async function buildFontFaceCss(): Promise<string | null> {
+  if (fontFaceCss !== undefined) return fontFaceCss;
   const blocks: string[] = [];
-  let totalBytes = 0;
   for (const face of FONT_FACES) {
     const filePath = await findFont(face.file);
     if (!filePath) {
       logger.warn(`Font ${face.file} not found in assets/fonts/. Run \`npm run fetch-fonts\`. The card may look off.`);
       continue;
     }
-    const buf = await fs.readFile(filePath);
-    totalBytes += buf.length;
-    const b64 = buf.toString('base64');
+    // Use file:// URLs instead of base64 data URIs — the emoji font is ~110 MB
+    // and base64-inlining it crashes Chrome's CDP protocol (message too large).
     const lines = [
       '@font-face {',
       `  font-family: '${face.family}';`,
-      `  src: url(data:${face.mime};base64,${b64}) format('${face.format}');`,
+      `  src: url('file://${filePath}') format('${face.format}');`,
       face.weight ? `  font-weight: ${face.weight};` : '',
       face.style ? `  font-style: ${face.style};` : '',
       '  font-display: block;',
@@ -96,12 +94,12 @@ async function loadInlinedFontsCss(): Promise<string | null> {
     blocks.push(lines.join('\n'));
   }
   if (blocks.length === 0) {
-    inlinedFontsCss = null;
-    return inlinedFontsCss;
+    fontFaceCss = null;
+    return fontFaceCss;
   }
-  logger.info(`Inlined ${blocks.length} font faces (${(totalBytes / 1024 / 1024).toFixed(1)} MB total)`);
-  inlinedFontsCss = blocks.join('\n');
-  return inlinedFontsCss;
+  logger.info(`Prepared ${blocks.length} @font-face rules (file:// refs)`);
+  fontFaceCss = blocks.join('\n');
+  return fontFaceCss;
 }
 
 function formatTimeFromIso(iso: string): string {
@@ -211,6 +209,16 @@ export async function renderCard(weather: WeatherSnapshot): Promise<string> {
 
   await fs.mkdir(path.dirname(config.card.outputPath), { recursive: true });
 
+  // Inject @font-face CSS (with file:// URLs) into the HTML.
+  // We write the result to a temp file and navigate via file:// so Chrome loads
+  // fonts directly from disk — avoids pushing ~150 MB of base64 through CDP.
+  const fCss = await buildFontFaceCss();
+  const finalHtml = fCss
+    ? html.replace('</head>', `<style>\n${fCss}\n</style>\n</head>`)
+    : html;
+  const tmpHtml = path.join(path.dirname(config.card.outputPath), '_card.html');
+  await fs.writeFile(tmpHtml, finalHtml);
+
   logger.info('Launching Puppeteer to render card');
   const browser = await puppeteer.launch({
     headless: true,
@@ -220,6 +228,7 @@ export async function renderCard(weather: WeatherSnapshot): Promise<string> {
       '--disable-setuid-sandbox',
       '--disable-dev-shm-usage',
       '--disable-gpu',
+      '--allow-file-access-from-files',
     ],
   });
   try {
@@ -229,16 +238,10 @@ export async function renderCard(weather: WeatherSnapshot): Promise<string> {
       height: config.card.height,
       deviceScaleFactor: 1,
     });
-    const fontCss = await loadInlinedFontsCss();
-    if (fontCss) {
-      await page.setContent(html, { waitUntil: 'load' });
-      await page.addStyleTag({ content: fontCss });
-      // Дождаться, пока браузер реально распарсит и подгрузит шрифт из data: URL.
-      // document.fonts.ready живёт в браузере; чтобы tsc не требовал lib:dom,
-      // отдаём eval как строку.
+    await page.goto(`file://${path.resolve(tmpHtml)}`, { waitUntil: 'load' });
+    if (fCss) {
+      // Дождаться, пока браузер реально распарсит и подгрузит шрифт из file:// URL.
       await page.evaluate('document.fonts.ready');
-    } else {
-      await page.setContent(html, { waitUntil: 'networkidle0' });
     }
     await page.screenshot({
       path: config.card.outputPath as `${string}.png`,
@@ -253,6 +256,7 @@ export async function renderCard(weather: WeatherSnapshot): Promise<string> {
     logger.info(`Card saved to ${config.card.outputPath}`);
   } finally {
     await browser.close();
+    await fs.unlink(tmpHtml).catch(() => {});
   }
 
   return config.card.outputPath;
